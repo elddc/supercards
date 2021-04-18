@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Supercards</title>
+	<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<div id="container">
+	<div id="menu-button" onclick="toggleMenu()">
+		<div id="wrap1" class="transition-second"><div id="bar1" class="transition-first"></div></div>
+		<div id="wrap2" class="transition-second"><div id="bar2" class="transition-first"></div></div>
+		<div id="wrap3" class="transition-second"><div id="bar3" class="transition-first"></div></div>
+	</div>
+	<div id="menu">
+		<ul id="pages" class="hide">
+			<li><a onclick="showDecks()">Decks</a></li>
+			<li><a onclick="openAddCards('')">Add Cards</a></li>
+			<li><a onclick="openEditTemplates()">Edit Templates</a></li>
+			<!-- <li>Browse</li> -->
+		</ul>
+		<div>
+			<button class="txt-button white" style="margin: 0.3em 3vw;" onclick="logOut()">Log Out</button>
+		</div>
+	</div>
+	<div id="main">
+
+	</div>
+</div>
+
+<div id="popup"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js"></script>
+<script src="firebase.js"></script>
+
+<!-- Mustache Templates -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/4.1.0/mustache.min.js"></script>
+<script id="tLogin" type="text/x-handlebars-template">
+	<div>
+		<div class="align-right" style="margin-bottom: 2vh; padding: 3vh;">
+			<span class="gray big space-right"><a onclick="{{otherClick}}">{{other}}</a></span>
+			<b class="blue big">{{title}}</b>
+		</div>
+		<div class="center-hori modal">
+			<div class="align-right">
+				<label for="email">Email</label>
+				<input type="email" id="email" name="email" class="txt-in"><br>
+				<label for="pass">Password</label>
+				<input type="password" id="pass" name="pass" class="txt-in"><br>
+				<button class="rect-button white dark-blue-bg" style="margin-right: 2vh; margin-top: 2vh;" onclick="{{onClick}}">
+					{{title}}
+				</button>
+			</div>
+		</div>
+	</div>
+</script>
+<script id="tDecks" type="text/x-handlebars-template">
+	<div class="content">
+		<h1 class="blue">Decks</h1>
+		<hr>
+		<ul id="deckList">
+			{{#decks}}
+				<li onclick="reviewDeck('{{.}}')">{{.}}</li>
+			{{/decks}}
+		</ul>
+	</div>
+	<div >
+		<button class="circle-button huge" onclick="openNewDeck()">+</button>
+	</div>
+</script>
+<script id="tReview" type="text/x-handlebars-template">
+	<!--
+		do not change spacing inside card class!
+		may need to use triple curlies to escape html
+	-->
+	<div id="card" class="content"></div>
+	<div class="button-bar">
+		<button class="border-button green hide" id="correctButton" onclick="mark(true)">Mark Correct</button>
+		<button class="border-button blue" onclick="flip()">Flip</button>
+		<button class="border-button red hide" id="incorrectButton" onclick="mark(false)">Mark Incorrect</button>
+	</div>
+</script>
+<script id="tMessage" type="text/x-handlebars-template">
+	<div class="content">
+		<h1>{{title}}</h1>
+		{{{message}}}
+	</div>
+</script><script id="tButton" type="text/x-handlebars-template">
+	<button id="{{id}}" class="{{class}}" style="{{style}}" onclick="{{onclick}}">{{text}}</button>
+</script>
+<script id="tForm" type="text/x-handlebars-template">
+	<div style="{{container}}">
+		<div style="margin-bottom: 2vh; padding: 3vh;">
+			<b class="blue big" >{{title}}</b>
+		</div>
+		<div class="center-hori modal">
+			<form id="form" class="align-right">
+				{{#fields}}
+					<label for="{{.}}" class="capital">{{.}}</label>
+					<input type="text" id="{{.}}Field" name="{{.}}" class="txt-in"><br>
+				{{/fields}}
+				{{{bottom}}}
+			</form>
+		</div>
+	</div>
+</script>
+<script id="tFormArea" type="text/x-handlebars-template">
+	<div style="{{container}}">
+		<div style="margin-bottom: 2vh; padding: 3vh;">
+			<b class="blue big" >{{title}}</b>
+		</div>
+		<div class="center-hori modal">
+			<div id="form" class="align-right">
+				<label for="front" class="capital">Front Template</label>
+				<textarea id="frontField" name="front" class="txt-in">
+					{{front}}
+				</textarea>
+				<br>
+				<label for="back" class="capital">Back Template</label>
+				<textarea id="backField" name="back" class="txt-in">
+					{{back}}
+				</textarea>
+				<br>
+				{{{bottom}}}
+			</div>
+		</div>
+	</div>
+</script>
+<script id="tTwoButtons" type="text/x-handlebars-template">
+	<button class="border-button dark-blue" onClick="closePopup()">Cancel</button>
+	<button type="button" class="rect-button white dark-blue-bg" style="margin-right: 2vh; margin-top: 2vh;" onclick="{{onclick}}">
+		{{buttonText}}
+	</button>
+</script>
+<script id="tAdd" type="text/x-handlebars-template">
+	<div class="row" style="width: 80%; margin-top: 2vh;">
+		<div style="flex: 1;">
+			<div class="row space-between">
+				<label for="deck">Deck</label>
+				<select id="fDeck" name="deck">
+					{{#decks}}
+						<option value="{{.}}">{{.}}</option>
+					{{/decks}}
+				</select>
+				<label for="card">Card Type</label>
+				<select id="fCard" name="card" onchange="changeCardType()">
+					{{#cards}}
+						<option value="{{.}}">{{.}}</option>
+					{{/cards}}
+				</select>
+				<label for="template">Template</label>
+				<select id="fTemplate" name="template" onchange="changeTemplate()">
+					{{#templates}}
+						<option value="{{.}}">{{.}}</option>
+					{{/templates}}
+				</select>
+			</div>
+			{{{input}}}
+		</div>
+		<div style="flex: 1;">
+			<div class="preview" id="preview-front">
+				{{{frontSide}}}
+			</div>
+			<div class="preview" id="preview-back">
+				{{{backSide}}}
+			</div>
+			<button class="rect-button dark-blue-bg white" onclick="addCard()">Add Card</button>
+		</div>
+	</div>
+</script>
+<script id="tEdit" type="text/x-handlebars-template">
+	<div class="row" style="width: 80%; margin-top: 2vh;">
+		<div style="flex: 1;">
+			<div class="row space-between">
+				<label for="card">Card Type</label>
+				<select id="fCard" name="card" onchange="changeCardTypeT()">
+					{{#cards}}
+						<option value="{{.}}">{{.}}</option>
+					{{/cards}}
+				</select>
+				<button class="rect-button dark-blue-bg white" onclick="openNewCard()">Add New Card</button>
+				<br>
+				<label for="template">Template</label>
+				<select id="fTemplate" name="template" onchange="changeTemplateT()">
+					{{#templates}}
+						<option value="{{.}}">{{.}}</option>
+					{{/templates}}
+				</select>
+				<button class="rect-button dark-blue-bg white" onclick="openNewTemplate()">Add New Template</button>
+			</div>
+			{{{input}}}
+		</div>
+		<div style="flex: 1;">
+			<div class="preview" id="preview-front">
+				{{{frontSide}}}
+			</div>
+			<div class="preview" id="preview-back">
+				{{{backSide}}}
+			</div>
+			<button class="rect-button dark-blue-bg white" onclick="updateTemplate()">Save</button>
+		</div>
+	</div>
+</script>
+
+<!-- variables -->
+<script>
+	//templates
+	const tButton = document.getElementById("tButton").innerHTML;
+	const tLogin = document.getElementById("tLogin").innerHTML;
+	const tDecks = document.getElementById("tDecks").innerHTML;
+	const tReview = document.getElementById("tReview").innerHTML;
+	const tMessage = document.getElementById("tMessage").innerHTML;
+	const tForm = document.getElementById("tForm").innerHTML;
+	const tArea = document.getElementById("tFormArea").innerHTML;
+	const tAdd = document.getElementById("tAdd").innerHTML;
+	const tEdit = document.getElementById("tEdit").innerHTML;
+
+	//containers
+	let main = document.getElementById("main");
+	let popup = document.getElementById("popup");
+	let card = document.getElementById("main");
+
+	//review (progress resets by session)
+	let front, back, isFront, correctButton, incorrectButton;   //page state
+	let cards, currentCard, deckSize;                                   //card info
+	let deckProgress = {};      //name of deck, card # (may change to cardsReviewed when shuffle implemented)
+	let toReview = [];          //cards marked incorrect
+	let reviewProgress = {};    //name of deck, saved reviewProgress
+
+	//adding card
+	let fDeck, fCard, fTemplate, form;    //dropdowns
+	let pageInfo;
+	let pFront, pBack;  //previews
+
+	//menu
+	let menuOpen = false;
+	let menu = document.getElementById("menu");
+	let menuButton = document.getElementById("menu-button")
+	let bars = [
+		document.getElementById("bar1"),
+		document.getElementById("bar2"),
+		document.getElementById("bar3"),
+	];
+	let wrap = [
+		document.getElementById("wrap1"),
+		document.getElementById("wrap2"),
+		document.getElementById("wrap3"),
+	];
+</script>
+<script src="cards.js"></script>
+</body>
+</html>
