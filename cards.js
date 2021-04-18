@@ -237,9 +237,6 @@ function doneMessage(){
 async function renderCard(type, template, data, display=true){
 	const cardTemplate = await getTemplate(type, template);
 
-	console.log(cardTemplate[0]);
-	console.log(data);
-
 	//todo test if data keys match card fields
 	front = Mustache.render(cardTemplate[0], data);
 	back = Mustache.render(cardTemplate[1], data);
