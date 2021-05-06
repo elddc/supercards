@@ -226,7 +226,7 @@
 
 	//review (progress resets by session)
 	let front, back, isFront, correctButton, incorrectButton;   //page state
-	let cards, currentCard, deckSize;                                   //card info
+	let cards, currentCard, deckSize;                           //card info
 	let deckProgress = {};      //name of deck, card # (may change to cardsReviewed when shuffle implemented)
 	let toReview = [];          //cards marked incorrect
 	let reviewProgress = {};    //name of deck, saved reviewProgress
@@ -251,6 +251,7 @@
 		document.getElementById("wrap3"),
 	];
 </script>
-<script src="cards.js"></script>
+<script src="general.js"></script>
+<script src="review.js"></script>
 </body>
 </html>

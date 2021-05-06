@@ -20,7 +20,7 @@ auth.onAuthStateChanged(user => {
 		start(user.uid);
 	}
 	else {
-		openLogin();
+		openAuth(1);
 	}
 });
 
