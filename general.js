@@ -2,7 +2,7 @@
 //0: signup (or anything other than 1 tbh)
 //1: login
 function openAuth(type){
-	if (menuOpen)
+	if (sessionStorage.getItem("menuOpen") === "1")
 		toggleMenu();
 	popup.style.display = "grid";
 
@@ -26,6 +26,22 @@ function openAuth(type){
 function closePopup(){
 	popup.innerHTML = "";
 	popup.style.display = "none";
+}
+
+//params: card type, template name, fields
+async function renderCard(type, template, data, display=true){
+	const cardTemplate = await getTemplate(type, template);
+	console.log(data);
+	console.log(cardTemplate[1]);
+	//todo test if data keys match card fields
+	front = Mustache.render(cardTemplate[0], data);
+	back = Mustache.render(cardTemplate[1], data);
+	console.log(front);
+	console.log(back);
+	if (display){
+		card.innerHTML = front;
+		isFront = true;
+	}
 }
 
 //open new deck creation popup
@@ -103,6 +119,7 @@ function newCardType(){
 		templates: {basic: [fields[0], fields[1]]},
 	};
 	userData.doc("cards").update(type);
+	closePopup()
 	openEditTemplates();
 }
 
@@ -210,8 +227,6 @@ function openEditTemplates(){
 	editTemplates();
 }
 
-
-//FIXME
 async function editTemplates(type="basic", template="basic"){
 	if (!pageInfo) {
 		console.log("fill pageInfo");
@@ -249,24 +264,33 @@ async function editTemplates(type="basic", template="basic"){
 	form.addEventListener('change', update)
 }
 
+function updateTemplate(){
+	//todo
+}
+
 function start(user){
 	userData = db.collection(user);
 	//generateDefault();    //testing only: reset acct
+	if (sessionStorage.getItem("menuOpen") === "1"){
+		sessionStorage.setItem("menuOpen", "0");
+		toggleMenu();
+	}
 	showDecks();
 }
 
 //open/close menu
+//menuOpen (in sessionStorage): 0 for closed, 1 for open
 function toggleMenu(){
 	let bg;
-	if (menuOpen){
+	if (sessionStorage.getItem("menuOpen") === "1"){
 		bg = "var(--blue)";
-		menuOpen = false;
 		menu.style.flex = "0";
+		sessionStorage.setItem("menuOpen", "0");
 	}
 	else {
 		bg = "white";
-		menuOpen = true;
 		menu.style.flex = "1";
+		sessionStorage.setItem("menuOpen", "1");
 	}
 	console.log(bg);
 

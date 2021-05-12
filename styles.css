@@ -5,8 +5,6 @@
     --green: #2db50b;
     --blue: #284e78;
     --dark-blue: #1d3759;
-    --a: #9D6FFF;
-    --b: #8DDAF8;
 }
 body {
     font-family: Roboto, sans-serif;
@@ -72,19 +70,22 @@ hr {
     justify-content: space-between;
 }
 #menu li {
-    padding: 0.5em 3vw;
     color: white;
 }
 #menu li:hover {
     color: var(--dark-blue);
     background-color: var(--light-gray);
 }
+li > a {
+    padding: 0.5em 3vw;
+    display: block;
+}
 #deckList li:hover { /*not working*/
     color: var(--dark-blue);
     background-color: white;
 }
 #pages {
-    transition: opacity .3s .7s;
+    transition: opacity .5s .5s;
 }
 #popup {
     display: none;
@@ -149,6 +150,11 @@ hr {
     border: 0.1em solid var(--gray);
     width: calc(100% - 10em);
     border-radius: 0.5em;
+}
+.txt-in:focus {
+    box-shadow: 0 0 0 .05em var(--blue);
+    border-color: var(--blue);
+    outline: none;
 }
 .row {
     display: flex;
@@ -311,4 +317,5 @@ hr {
 .hide {
     visibility: hidden;
     opacity: 0;
+    transition: opacity .5s .5s;
 }

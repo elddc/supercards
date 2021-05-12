@@ -153,7 +153,7 @@
 					{{/cards}}
 				</select>
 				<label for="template">Template</label>
-				<select id="fTemplate" name="template" onchange="changeTemplate()">
+				<select id="fTemplate" name="template" onchange="changeTemplate()" multiple>
 					{{#templates}}
 						<option value="{{.}}">{{.}}</option>
 					{{/templates}}
@@ -237,7 +237,6 @@
 	let pFront, pBack;  //previews
 
 	//menu
-	let menuOpen = false;
 	let menu = document.getElementById("menu");
 	let menuButton = document.getElementById("menu-button")
 	let bars = [

@@ -95,19 +95,6 @@ function doneMessage(){
 	main.innerHTML = Mustache.render(tMessage, {title: "Done", message: msg})
 }
 
-//params: card type, template name, fields
-async function renderCard(type, template, data, display=true){
-	const cardTemplate = await getTemplate(type, template);
-
-	//todo test if data keys match card fields
-	front = Mustache.render(cardTemplate[0], data);
-	back = Mustache.render(cardTemplate[1], data);
-	if (display){
-		card.innerHTML = front;
-		isFront = true;
-	}
-}
-
 //flip card
 function flip(){
 	card.innerHTML = isFront ? back : front;
